@@ -1,0 +1,32 @@
+#!/usr/bin/php
+<?php
+
+require_once(__DIR__ . '/helpers/BackupWorker.php');
+
+$credentials = json_decode(file_get_contents(__DIR__ . '/settings/credentials.json'), true);
+$databases = json_decode(file_get_contents(__DIR__ . '/settings/databases.json'), true);
+$sites = json_decode(file_get_contents(__DIR__. '/settings/sites.json'), true);
+
+$worker = new BackupWorker($credentials['host'], $credentials['port'], $credentials['login'], $credentials['passwd']);
+
+foreach ($databases as $database) {
+    $download = $worker->backupDatabase($database['host'], $database['name'], $database['user'], $database['passwd']);
+
+    if ($worker->download($download)) {
+        print('Database ' . $database['name'] . ': OK' . PHP_EOL);
+    }
+    else {
+        print('Database ' . $database['name'] . ': ERROR' . PHP_EOL);
+    }
+}
+
+foreach ($sites as $site) {
+    $download = $worker->backupSite($site['name'], $site['path']);
+
+    if ($worker->download($download)) {
+        print('Site ' . $site['name'] . ': OK' . PHP_EOL);
+    }
+    else {
+        print('Site ' . $site['name'] . ': ERROR' . PHP_EOL);
+    }
+}
